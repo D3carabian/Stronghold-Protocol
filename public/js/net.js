@@ -309,6 +309,13 @@ export class Net {
     this._teardownSocket();
     this._failPending('DISCONNECTED', false);
     if (this._manualClose) { this._setStatus('closed'); return; }
+    if (ev && ev.code === 4401) {
+      this._manualClose = true;
+      this._failPending('CLOSED', true);
+      this._setStatus('closed');
+      this._emit('authRequired');
+      return;
+    }
     if (ev && ev.code === CLOSE_REPLACED) {
       // Another tab/socket took this session over: don't fight it; the user may reconnect manually.
       this._manualClose = true;
