@@ -65,6 +65,6 @@ Tailscale 访问规则由所有者在另一处调整；本次未改动该策略�
 ## 网页图标更新
 
 游戏页和登录页已统一采用所有者提供的活动 logo，经 imagegen 清理为正方形；图标与提示词见 [BRANDING.md](BRANDING.md)。
-正式服、测试服的图标版本镜像为 `stronghold:d4d4c18000f0b69131b69aafa927cefcd1108fd2`。
+正式服、测试服的图标版本镜像为 `stronghold:9238203578211d3b4e6ed92fefbdf1e317eb6802`。
 浏览器图标、Apple 主屏幕图标与 Web App manifest 已更新。新图标无需登录即可读取，游戏资源仍受登录保护。
 两环境线上 PNG 的内容均与本地文件完全一致，登录页引用与 manifest 已检查。发布时两边均无在线对局。
