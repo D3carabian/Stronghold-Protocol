@@ -33,22 +33,32 @@ export function healthReport({ startedAt, network, registry, lobby }) {
  * The request listener for `http.createServer`.
  * @param {{ serveStatic: (req: import('node:http').IncomingMessage, res: import('node:http').ServerResponse,
  *             rawPath: string, query: string) => Promise<void>,
- *           health: Parameters<typeof healthReport>[0], log: object }} deps
+ *           health: Parameters<typeof healthReport>[0], log: object, auth?: object, handleAuth?: Function }} deps
  * @returns {(req: import('node:http').IncomingMessage, res: import('node:http').ServerResponse) => void}
  */
-export function createRequestHandler({ serveStatic, health, log }) {
+export function createRequestHandler({ serveStatic, health, log, auth, handleAuth }) {
   async function handleRequest(req, res) {
     const url = req.url || '/';
     if (url.length > MAX_URL_LENGTH) { sendError(req, res, 414, '请求地址过长 · URI too long'); return; }
     const parts = splitUrl(url);
     if (!parts) { sendError(req, res, 400, '请求地址无效 · Bad request'); return; }
+    if (handleAuth && await handleAuth(req, res, parts.rawPath)) return;
+    if (!auth && req.method === 'GET' && parts.rawPath === '/auth/api/session') {
+      sendJson(req, res, 200, { enabled: false, user: null }); return;
+    }
+    if (auth && !(parts.rawPath === '/healthz' && auth.healthAllowed(req)) && !auth.authenticate(req)) {
+      if (parts.rawPath === '/' && ['GET', 'HEAD'].includes(req.method)) {
+        res.writeHead(303, { Location: '/auth/login', 'Cache-Control': 'no-store' }); res.end();
+      } else sendJson(req, res, 401, { error: 'AUTH_REQUIRED' });
+      return;
+    }
     if (req.method !== 'GET' && req.method !== 'HEAD') {
       res.setHeader('Allow', 'GET, HEAD');
       sendError(req, res, 405, '不支持的请求方法 · Method not allowed');
       return;
     }
     if (parts.rawPath === '/healthz') {
-      sendJson(req, res, 200, healthReport(health));
+      sendJson(req, res, 200, { ...healthReport(health), ...(auth ? { authPending: auth.pendingSends } : {}) });
       return;
     }
     await serveStatic(req, res, parts.rawPath, parts.query);

@@ -1,0 +1,11 @@
+# Explicit overlay: deploy.py preserves this configuration on future deployments.
+services:
+  game:
+    env_file:
+      - path: ${AUTH_ENV_FILE:?Set a root-readable authentication env file}
+        format: raw
+    volumes:
+      - type: bind
+        source: ${AUTH_STATE_DIR:?Set an environment-specific writable state directory}
+        target: /var/lib/stronghold-auth
+        bind: {create_host_path: false}

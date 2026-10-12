@@ -23,6 +23,9 @@
 // The server only auto-listens when this file is the process entry point.
 
 import http from 'node:http';
+import { authConfig } from './auth/config.js';
+import { AuthService } from './auth/service.js';
+import { authHttp } from './auth/http.js';
 import { getData, loadData } from './data.js';
 import { ROOT, listenAddress, bindCandidates, serveDirs, makeLogger, parseTrustProxy } from './http/config.js';
 import { WS_MAX_PAYLOAD, createSessionStack, attachWebSocket } from './http/websocket.js';
@@ -50,6 +53,7 @@ export {
  *   ratePerSec?: number, rateBurst?: number, maxConnections?: number, maxRooms?: number,
  *   maxConnectionsPerAddr?: number, maxRoomsPerAddr?: number, maxMatchesPerAddr?: number, resyncMinGapMs?: number,
  *   heavyPerSec?: number, heavyBurst?: number, trustProxy?: 'auto' | boolean, soloReconnectWindowMs?: number,
+ *   auth?: AuthService,
  * }} [opts]
  * @returns {Promise<{ port: number, host: string, url: string, server: http.Server, wss: import('ws').WebSocketServer,
  *                     lobby: import('./lobby.js').Lobby, network: import('./net.js').Network,
@@ -63,7 +67,10 @@ export async function startServer(opts = {}) {
 
   // The process-wide singleton serves the default data dir; a custom dir (tests) gets its own copy.
   const data = opts.dataDir ? loadData(dataDir, { log }) : getData({ dir: dataDir, log });
+  const configuredAuth = opts.auth ? null : authConfig();
+  const auth = opts.auth || (configuredAuth ? new AuthService(configuredAuth) : null);
   const { registry, lobby, network } = createSessionStack(opts, { data, log });
+  const handleAuth = auth ? authHttp(auth, { trustProxy: network.opts.trustProxy, log }) : null;
   // content packs (docs/PACKS.md): scanned now — the start log names them — and again whenever their folders change
   const packs = createPackRegistry({ publicDir, dataDir, packsDir }, { log });
   packs.refresh(true);
@@ -73,9 +80,9 @@ export async function startServer(opts = {}) {
   resetBuildTag();
   buildTag();
 
-  const server = http.createServer(createRequestHandler({ serveStatic, health: { startedAt, network, registry, lobby }, log }));
+  const server = http.createServer(createRequestHandler({ serveStatic, health: { startedAt, network, registry, lobby }, log, auth, handleAuth }));
   server.on('clientError', answerClientError);
-  const wss = attachWebSocket(server, { network, log });
+  const wss = attachWebSocket(server, { network, log, auth });
 
   // The address actually bound. The default may fall back to IPv4; the returned host and url follow that.
   let boundHost;
@@ -108,6 +115,7 @@ export async function startServer(opts = {}) {
     boundHost = bound;
   } catch (e) {
     network.close(); // stop heartbeat/sweep timers of the half-built server
+    auth?.close();
     throw e;
   }
   server.on('error', (e) => log.error('[http] server error', e));
@@ -128,6 +136,7 @@ export async function startServer(opts = {}) {
         setTimeout(() => { server.closeAllConnections?.(); }, 500).unref();
       });
       try { wss.close(); } catch { /* ignore */ }
+      auth?.close();
     })();
     return closing;
   }

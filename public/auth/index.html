@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Stronghold Protocol · Account</title>
+  <link rel="stylesheet" href="/auth/login.css">
+  <script type="module" src="/auth/login.js"></script>
+</head>
+<body>
+  <main>
+    <header><span class="wordmark">STRONGHOLD / COMMUNITY</span>
+      <select id="language" aria-label="Language / 语言"><option value="zh">中文</option><option value="en">English</option><option value="ja">日本語</option><option value="ko">한국어</option><option value="zh-TW">繁體中文</option></select>
+    </header>
+    <section class="card">
+      <p id="environment" class="eyebrow"></p>
+      <h1 id="heading"></h1><p id="intro" class="muted"></p>
+      <form id="email-form" hidden>
+        <label for="email" id="email-label"></label>
+        <input id="email" type="email" autocomplete="email" inputmode="email" maxlength="254" required>
+        <label for="invite" id="invite-label"></label>
+        <input id="invite" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="200">
+        <p id="invite-help" class="hint"></p>
+        <button id="send" type="submit" disabled></button>
+      </form>
+      <form id="code-form" hidden>
+        <label for="code" id="code-label"></label>
+        <input id="code" class="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required>
+        <button id="verify" type="submit"></button>
+        <button id="back" type="button" class="secondary"></button>
+      </form>
+      <section id="account" hidden>
+        <p id="account-email"></p><a class="primary" href="/" id="enter"></a>
+        <p id="logout-help" class="hint"></p><button id="logout" class="secondary" type="button"></button>
+      </section>
+      <p id="status" role="status" aria-live="polite"></p>
+    </section>
+    <footer id="footer"></footer>
+  </main>
+</body>
+</html>

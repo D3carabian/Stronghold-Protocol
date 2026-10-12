@@ -34,10 +34,10 @@ export function createSessionStack(opts, { data, log }) {
 /**
  * Serve the WebSocket endpoint /ws on `server` (its 'upgrade' event).
  * @param {import('node:http').Server} server
- * @param {{ network: Network, log: object }} deps
+ * @param {{ network: Network, log: object, auth?: object }} deps
  * @returns {WebSocketServer}
  */
-export function attachWebSocket(server, { network, log }) {
+export function attachWebSocket(server, { network, log, auth }) {
   const wss = new WebSocketServer({ noServer: true, maxPayload: WS_MAX_PAYLOAD, perMessageDeflate: false, clientTracking: false });
   wss.on('connection', (ws, req) => network.handleConnection(ws, req));
   wss.on('error', (e) => log.error('[ws] server error', e));
@@ -49,6 +49,13 @@ export function attachWebSocket(server, { network, log }) {
       try { socket.end(`HTTP/1.1 ${status} ${text}\r\nConnection: close\r\nContent-Length: 0\r\n\r\n`); } catch { socket.destroy(); }
     };
     if (!parts || parts.rawPath !== '/ws') { reject(404, 'Not Found'); return; }
+    if (auth) {
+      if (req.headers.origin !== auth.config.origin) { reject(403, 'Forbidden'); return; }
+      const user = auth.authenticate(req);
+      if (!user) { reject(401, 'Unauthorized'); return; }
+      req.authUser = user;
+      req.authCheck = () => !!auth.sessionByDigest(user.sessionDigest);
+    }
     // Fork deployment gate: refuse new sockets without dropping existing games or reloading Caddy.
     if (process.env.SP_MAINTENANCE_FILE && existsSync(process.env.SP_MAINTENANCE_FILE)) {
       reject(503, 'Service Unavailable'); return;
@@ -57,7 +64,10 @@ export function attachWebSocket(server, { network, log }) {
     if (refused === 'per-address') { reject(429, 'Too Many Requests'); return; }
     if (refused) { reject(503, 'Service Unavailable'); return; }
     try {
-      wss.handleUpgrade(req, socket, head, (ws) => wss.emit('connection', ws, req));
+      wss.handleUpgrade(req, socket, head, (ws) => {
+        if (auth) auth.trackSocket(ws, req.authUser);
+        wss.emit('connection', ws, req);
+      });
     } catch (e) {
       log.error('[ws] upgrade failed', e);
       socket.destroy();

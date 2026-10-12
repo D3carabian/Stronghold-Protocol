@@ -20,6 +20,7 @@ COPY shared ./shared
 COPY data ./data
 COPY public ./public
 COPY packs ./packs
+COPY tools/auth-admin.mjs ./tools/auth-admin.mjs
 COPY docs/research/*.json ./docs/research/
 COPY LICENSE NOTICE.md THIRD-PARTY-NOTICES.md ./
 USER node

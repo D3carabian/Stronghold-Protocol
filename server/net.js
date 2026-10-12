@@ -90,6 +90,8 @@ export class Session {
     this.playerId = playerId;
     /** @type {string} secret 128-bit hex reconnect token (only ever sent to its owner) */
     this.token = token;
+    /** Account identity in the authenticated fork; never supplied by a client message. */
+    this.authUserId = null;
     /** @type {string} sanitized nickname */
     this.name = name;
     /** @type {import('ws').WebSocket | null} currently bound socket */
@@ -558,6 +560,8 @@ export class Network {
   handleConnection(ws, req) {
     if (this.closed) { try { ws.close(CLOSE.SHUTDOWN, 'server shutdown'); } catch { /* ignore */ } return; }
     const conn = new Connection(ws, clientAddress(req, this.opts.trustProxy), this.now(), this.opts);
+    conn.authUserId = req?.authUser?.id || null;
+    conn.authCheck = req?.authCheck || null;
     this.conns.set(ws, conn);
     if (conn.key) this.connsPerKey.set(conn.key, (this.connsPerKey.get(conn.key) || 0) + 1);
     ws.on('message', (data, isBinary) => {
@@ -576,6 +580,7 @@ export class Network {
     // A socket we are closing (replaced by another tab, hello timeout, flooding, shutdown) may still have
     // frames in flight; acting on them could e.g. mint an orphan session from a late `hello`.
     if (conn.closing || this.closed) return;
+    if (conn.authCheck && !conn.authCheck()) { conn.close(4401, 'authentication required'); return; }
     const now = this.now();
     conn.alive = true;
     if (conn.session && conn.session.ws === conn.ws) conn.session.lastSeen = now;
@@ -648,6 +653,8 @@ export class Network {
     const repeat = !!session;
     if (!session) {
       session = msg.token ? this.registry.byToken(msg.token) : null;
+      // A shared browser may retain another user's old token. Start a new player; never adopt that identity.
+      if (conn.authUserId && session && session.authUserId !== conn.authUserId) session = null;
       if (session) {
         if (session.connected && session.ws && session.ws !== conn.ws
           && (msg.noReplace || (Number.isFinite(msg.claimAt) && session.claimAt != null && msg.claimAt > session.claimAt))) {
@@ -659,6 +666,7 @@ export class Network {
       } else {
         session = this.registry.create(name);
         if (!session) { this.reply(conn, errorMsg(ERR.INTERNAL, rid, 'server full')); return; }
+        session.authUserId = conn.authUserId;
       }
       conn.session = session;
       session.ws = conn.ws;

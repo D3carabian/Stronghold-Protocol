@@ -45,7 +45,7 @@ import { scanPacks, LANG_DIR } from '../server/packs.js';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CJK = /[\u3400-\u9fff\uf900-\ufaff\u3000-\u303f\uff01-\uff60]/;
 const HAN = /[\u3400-\u9fff\uf900-\ufaff]/;
-const DEFAULT_ROOTS = ['public/js', 'shared', 'server'];
+const DEFAULT_ROOTS = ['public/js', 'public/auth', 'shared', 'server'];
 const SKIP_DIRS = new Set(['node_modules', 'vendor', 'assets', 'fonts', 'dev']);
 /** Calls whose first argument is a msgid (tc: the second, keyed `context::msgid`). */
 const MSGID_CALLS = new Set(['t', 'tParts', 'N_', 'msg']);

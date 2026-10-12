@@ -1,5 +1,8 @@
 # 部署与回滚
 
+> 邮箱认证启用后的实际入口见 [STATUS.md](STATUS.md)，账号、邀请、数据库备份及认证回滚见 [AUTH.md](AUTH.md)。
+> 以下 Basic Auth 配置保留作旧版恢复参考；不要在认证镜像回滚前移除旧版所需的保护。
+
 ## 环境
 
 正式服为 `https://play.d3carab1an.com`，测试服为 `https://test-play.d3carab1an.com`。两者暂时都为 DNS only，
