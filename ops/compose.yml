@@ -1,0 +1,53 @@
+services:
+  game:
+    image: ${GAME_IMAGE:?Set an immutable image tag or digest}
+    restart: unless-stopped
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 128
+    mem_limit: ${MEMORY_LIMIT:-1536m}
+    cpus: ${CPU_LIMIT:-1.0}
+    stop_grace_period: 20s
+    ports:
+      - "127.0.0.1:${APP_PORT:?Set a unique loopback port}:3000"
+    environment:
+      HOST: 0.0.0.0
+      PORT: '3000'
+      SP_COMBAT: client
+      SP_VERIFY: 'off'
+      TRUST_PROXY: auto
+      NODE_OPTIONS: --max-old-space-size=1024
+      SP_MAINTENANCE_FILE: /run/stronghold/maintenance
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m
+    volumes:
+      - type: bind
+        source: ${CONTROL_DIR:?Set the environment-specific control directory}
+        target: /run/stronghold
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${ASSET_DIR:?Set a validated asset bundle}/public/assets
+        target: /app/public/assets
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${ASSET_DIR}/public/fonts
+        target: /app/public/fonts
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${ASSET_DIR}/data/assets.json
+        target: /app/data/assets.json
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${ASSET_DIR}/data/local-assets.json
+        target: /app/data/local-assets.json
+        read_only: true
+        bind: {create_host_path: false}
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: '3'}

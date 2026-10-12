@@ -43,3 +43,8 @@ desktop.ini
 .idea/
 .vscode/
 .claude/
+
+# Fork operations: artifacts and access credentials never enter Git.
+.local/
+artifacts/
+!ops/examples/*.env.example

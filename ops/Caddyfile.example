@@ -1,0 +1,24 @@
+# Generate the two password hashes with `caddy hash-password`, keep the real file outside Git.
+# Authentication protects all routes, including /ws, /healthz and media requests.
+play.example.com {
+    encode zstd gzip
+    header X-Robots-Tag "noindex, nofollow"
+    header X-Stronghold-Environment production
+    basic_auth {
+        owner REPLACE_WITH_BCRYPT_HASH
+    }
+    reverse_proxy 127.0.0.1:3100 {
+        header_up -Authorization
+    }
+}
+test-play.example.com {
+    encode zstd gzip
+    header X-Robots-Tag "noindex, nofollow"
+    header X-Stronghold-Environment staging
+    basic_auth {
+        tester REPLACE_WITH_DIFFERENT_BCRYPT_HASH
+    }
+    reverse_proxy 127.0.0.1:3101 {
+        header_up -Authorization
+    }
+}

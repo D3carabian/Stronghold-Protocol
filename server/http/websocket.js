@@ -7,6 +7,7 @@
 //     clientAddress; local/LAN peers are exempt) 429; server full (maxConnections) or shutting down 503.
 
 import { WebSocketServer } from 'ws';
+import { existsSync } from 'node:fs';
 import { Network, SessionRegistry, NET_DEFAULTS } from '../net.js';
 import { Lobby } from '../lobby.js';
 import { splitUrl } from './common.js';
@@ -48,6 +49,10 @@ export function attachWebSocket(server, { network, log }) {
       try { socket.end(`HTTP/1.1 ${status} ${text}\r\nConnection: close\r\nContent-Length: 0\r\n\r\n`); } catch { socket.destroy(); }
     };
     if (!parts || parts.rawPath !== '/ws') { reject(404, 'Not Found'); return; }
+    // Fork deployment gate: refuse new sockets without dropping existing games or reloading Caddy.
+    if (process.env.SP_MAINTENANCE_FILE && existsSync(process.env.SP_MAINTENANCE_FILE)) {
+      reject(503, 'Service Unavailable'); return;
+    }
     const refused = network.admission(req);
     if (refused === 'per-address') { reject(429, 'Too Many Requests'); return; }
     if (refused) { reject(503, 'Service Unavailable'); return; }

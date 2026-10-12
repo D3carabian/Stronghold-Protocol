@@ -1,0 +1,29 @@
+name: Fork operations checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  operations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: node --test test/http-maintenance.test.js
+      - run: python3 -m unittest discover -s ops -p 'test_*.py'
+      - name: Build code-only image
+        run: docker build -f ops/Dockerfile --build-arg REVISION=${{ github.sha }} -t stronghold:check .
+      - name: Validate environment templates
+        run: |
+          docker compose --env-file ops/examples/production.env.example -f ops/compose.yml config --quiet
+          docker compose --env-file ops/examples/staging.env.example -f ops/compose.yml config --quiet
+# Publishing/deploying is intentionally not triggered by PRs. Email/invite auth, resource checks,
+# staging acceptance and environment approval must exist before unattended production updates.

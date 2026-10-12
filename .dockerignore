@@ -21,3 +21,7 @@ scripts/service.env.cmd
 Thumbs.db
 .env
 .env.*
+.local
+artifacts
+public/fonts
+data/local-assets.json

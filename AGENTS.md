@@ -1,5 +1,15 @@
 # AGENTS.md
 
+## D3carabian fork
+
+Read [docs/fork/README.md](docs/fork/README.md) for this fork's scope, commands and deployment boundaries.
+For substantial work maintain an execution plan under `docs/fork/plans/`, following [PLANS.md](PLANS.md).
+Keep the upstream rules below. Put deployment additions under `ops/` and fork documentation under `docs/fork/`.
+Never commit credentials, downloaded game assets, machine paths or user data. Production and staging are distinct;
+promoting a tested release is explicit and must not interrupt an active match. The current temporary access gate
+is not the planned email-verification/invitation system. Do not describe those future features as implemented.
+Safari/iPad support requires real-device checks; a resized Chromium window is not Safari validation.
+
 Entry point for AI coding assistants (Codex, Claude Code, Cursor, Copilot …) working on this repository. It only
 indexes the existing documents and their hard rules; when this file and a linked document disagree, the document wins.
 Human contributors: [CONTRIBUTING.md](CONTRIBUTING.md) is the same material in full.
