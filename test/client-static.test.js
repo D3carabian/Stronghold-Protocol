@@ -572,6 +572,17 @@ describe('net.js', () => {
     assert.equal(net.status, 'reconnecting');
   });
 
+  test('server close 4401 stops reconnection and requests mailbox sign-in', async () => {
+    const { net, ws, sockets, timers } = await onlineNet();
+    let required = 0;
+    net.on('authRequired', () => required++);
+    ws().drop(4401);
+    timers.advance(60000);
+    assert.equal(net.status, 'closed');
+    assert.equal(required, 1);
+    assert.equal(sockets.length, 1);
+  });
+
   test('server close 4001 (session replaced) stops auto-reconnect', async () => {
     const { net, ws, sockets, timers } = await onlineNet();
     const events = [];

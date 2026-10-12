@@ -1,0 +1,36 @@
+# Use ONLY after AUTH_ENABLED=1 is verified and both HTTP and /ws reject anonymous players.
+# Keep the previous Basic Auth file privately for rollback to an older, unauthenticated image.
+play.example.com {
+    encode zstd gzip
+    header X-Robots-Tag "noindex, nofollow"
+    header X-Stronghold-Environment production
+    @foreignOrigin {
+        path /ws
+        header Origin *
+        not header Origin https://play.example.com
+    }
+    respond @foreignOrigin "Forbidden" 403
+    reverse_proxy 127.0.0.1:3100 {
+        header_up -Authorization
+        header_up -CF-Connecting-IP
+        header_up -X-Stronghold-Health
+        header_up X-Real-IP {remote_host}
+    }
+}
+test-play.example.com {
+    encode zstd gzip
+    header X-Robots-Tag "noindex, nofollow"
+    header X-Stronghold-Environment staging
+    @foreignOrigin {
+        path /ws
+        header Origin *
+        not header Origin https://test-play.example.com
+    }
+    respond @foreignOrigin "Forbidden" 403
+    reverse_proxy 127.0.0.1:3101 {
+        header_up -Authorization
+        header_up -CF-Connecting-IP
+        header_up -X-Stronghold-Health
+        header_up X-Real-IP {remote_host}
+    }
+}
