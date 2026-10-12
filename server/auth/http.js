@@ -9,7 +9,7 @@ import { AuthError } from './service.js';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const PUBLIC = new Map([
   // Public site branding is also needed by the login screen and OS home-screen installers.
-  ...[32, 180, 192, 512].map((size) => [`/icons/community-logo-${size}.png`, [`public/icons/community-logo-${size}.png`, 'image/png']]),
+  ...[32, 180, 192, 512, 'maskable-192', 'maskable-512'].map((size) => [`/icons/community-logo-${size}.png`, [`public/icons/community-logo-${size}.png`, 'image/png']]),
   ['/manifest.json', ['public/manifest.json', 'application/manifest+json']],
   ['/auth/login', ['public/auth/index.html', 'text/html']],
   ['/auth/login.js', ['public/auth/login.js', 'text/javascript']],
