@@ -20,6 +20,11 @@ test('HTTP login, Origin checks, WebSocket account binding, logout and revocatio
   assert.equal((await fetch(srv.url + '/', { redirect: 'manual' })).status, 303);
   assert.equal((await fetch(srv.url + '/data/chess.json')).status, 401);
   assert.equal((await fetch(srv.url + '/auth/login')).status, 200);
+  const icon = await fetch(srv.url + '/icons/community-logo-32.png');
+  assert.equal(icon.status, 200);
+  assert.equal(icon.headers.get('content-type'), 'image/png');
+  assert.equal(Buffer.from(await icon.arrayBuffer()).readUInt32BE(0), 0x89504e47);
+  assert.equal((await fetch(srv.url + '/manifest.json')).status, 200);
   assert.equal((await post('request-code', {}, '', 'https://evil.invalid')).status, 403);
   await assert.rejects(TestClient.connect(srv.url.replace('http:', 'ws:') + '/ws', { wsOptions: { origin: srv.url } }), /401/);
   async function login(email) {
