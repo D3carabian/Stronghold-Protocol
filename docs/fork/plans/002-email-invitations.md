@@ -16,9 +16,9 @@ real delivery and the full login flow pass. No changes to Tailscale policy are a
 - [x] Protect HTTP and WebSocket, bind reconnect identities and handle revocation.
 - [x] Add accessible mobile-friendly login/account screens with translations.
 - [x] Add administrative CLI, persistent deployment overlay, backups and migration documentation.
-- [ ] Test expiry/replay/abuse/concurrency, HTTP/WS and browser flows; run repository checks.
-- [ ] Configure Resend when credentials/domain verification are available; validate real delivery on staging.
-- [ ] Commit/push and open a reviewable PR; update current-state docs with measured results.
+- [x] Test expiry/replay/abuse/concurrency, HTTP/WS and browser flows; run repository checks.
+- [x] Configure Resend when credentials/domain verification are available; validate real delivery on staging.
+- [x] Commit/push and open a reviewable PR; update current-state docs with measured results.
 
 ## Decisions
 
@@ -45,8 +45,8 @@ an active room. Do not run a candidate container against the live authentication
 
 The upstream uses a secret game reconnect token but has no account binding. The current deployment health check
 needs room/socket counts; authenticated deployments will use an independent health token instead of weakening
-game authentication. The Resend domain is verified. The first supplied value was a DKIM public key; the owner is replacing it with a sending API key.
+game authentication. The Resend domain is verified. The first supplied value was a DKIM public key; the owner replaced it with a sending API key kept outside Git.
 
 ## Outcomes
 
-Implementation in progress. Record exact tests, real-delivery evidence and deployed environments before completion.
+Both environments now run image dcc49fbcc81bc5a6a32339771af460f8cc77608a with authentication enabled. The owner received the authorized test email and completed staging login. A subsequent staging deployment preserved that session. Public anonymous HTTP/WS and foreign-Origin checks pass. The operational backup fix closes SQLite connections explicitly and removes reliance on WAL sidecars; the reproduced failed candidate left live staging untouched, and the repaired deployment passed. Local CI: 5,983 tests, 5,944 pass, 39 skip; golden 287 unchanged; final client checks 354 pass; ops 9 pass. PR #1 contains the implementation. See STATUS.md and AUTH.md for evidence and remaining device/backup limitations.

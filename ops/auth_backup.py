@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Consistent SQLite backup. Treat both database and backups as private account data."""
+from contextlib import closing
 import argparse
 from pathlib import Path
 import sqlite3
@@ -13,9 +14,11 @@ def snapshot(source, destination):
         pass
     destination.chmod(0o600)
     try:
-        with sqlite3.connect(source.resolve().as_uri() + '?mode=ro', uri=True) as src:
-            with sqlite3.connect(destination) as dst:
+        with closing(sqlite3.connect(source.resolve().as_uri() + '?mode=ro', uri=True)) as src:
+            with closing(sqlite3.connect(destination)) as dst:
                 src.backup(dst)
+                # A portable snapshot must not depend on root-owned WAL/SHM sidecars.
+                dst.execute('PRAGMA journal_mode=DELETE')
                 if dst.execute('PRAGMA integrity_check').fetchone()[0] != 'ok':
                     raise RuntimeError('Backup integrity check failed')
     except Exception:

@@ -60,7 +60,23 @@ class AuthDeploymentTests(unittest.TestCase):
                 db.execute('CREATE TABLE users (email TEXT)')
                 db.execute("INSERT INTO users VALUES ('test@example.com')")
                 db.commit()
-                snapshot(source, backup)
+                from unittest.mock import patch
+                import auth_backup
+                connect = sqlite3.connect
+                connections = []
+
+                def track_connection(*args, **kwargs):
+                    connection = connect(*args, **kwargs)
+                    connections.append(connection)
+                    return connection
+
+                with patch.object(auth_backup.sqlite3, 'connect', side_effect=track_connection):
+                    snapshot(source, backup)
+                for connection in connections:
+                    with self.assertRaises(sqlite3.ProgrammingError):
+                        connection.execute('SELECT 1')
+                self.assertFalse(Path(str(backup) + '-wal').exists())
+                self.assertFalse(Path(str(backup) + '-shm').exists())
                 with sqlite3.connect(backup) as copy:
                     self.assertEqual(copy.execute('SELECT * FROM users').fetchone(), ('test@example.com',))
                     copy.execute('DELETE FROM users')
