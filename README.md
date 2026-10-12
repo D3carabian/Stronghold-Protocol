@@ -1,5 +1,9 @@
 # 卫戍协议：盟约 · Stronghold Protocol: Alliance
 
+> **D3carabian fork**：本仓库维护社区服的部署与后续定制。开发、正式／测试环境、资源导入、更新和回滚
+> 请从 [fork 文档入口](docs/fork/README.md) 开始；实际完成情况见 [状态记录](docs/fork/STATUS.md)。
+> 下方保留上游游戏介绍与声明。邮箱验证、邀请制和管理后台的规划不代表这些功能已经上线。
+
 《明日方舟》季节性自走棋塔防玩法「卫戍协议：盟约」的**非官方同人复刻**：浏览器即开即玩，单人或 1–4 人联机合作。
 
 ![version](https://img.shields.io/badge/version-0.2.4-2ea44f)

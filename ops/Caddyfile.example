@@ -7,8 +7,16 @@ play.example.com {
     basic_auth {
         owner REPLACE_WITH_BCRYPT_HASH
     }
+    @foreignOrigin {
+        path /ws
+        header Origin *
+        not header Origin https://play.example.com
+    }
+    respond @foreignOrigin "Forbidden" 403
     reverse_proxy 127.0.0.1:3100 {
         header_up -Authorization
+        header_up -CF-Connecting-IP
+        header_up X-Real-IP {remote_host}
     }
 }
 test-play.example.com {
@@ -18,7 +26,15 @@ test-play.example.com {
     basic_auth {
         tester REPLACE_WITH_DIFFERENT_BCRYPT_HASH
     }
+    @foreignOrigin {
+        path /ws
+        header Origin *
+        not header Origin https://test-play.example.com
+    }
+    respond @foreignOrigin "Forbidden" 403
     reverse_proxy 127.0.0.1:3101 {
         header_up -Authorization
+        header_up -CF-Connecting-IP
+        header_up X-Real-IP {remote_host}
     }
 }

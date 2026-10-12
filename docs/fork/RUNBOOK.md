@@ -12,11 +12,17 @@
 `/srv/stronghold/control/<environment>/maintenance` 是发布门禁文件。访问密码哈希在 Caddy 专用配置中，
 不在仓库；本机的私人访问说明单独保存。测试服和正式服使用不同密码。
 
+如果 Tailscale 策略修改后私有 SSH 被拒，使用 `ssh my-lightsail-public` 排查；它仍要求当前公网 IP 在
+Lightsail 白名单内。只给 `tag:ci` 授权不会同时给个人电脑授权，维护 CI 策略时需保留管理员设备规则。
+不要通过关闭认证或直接开放游戏容器端口来排查。
+
 ## 初次构建与候选发布
 
-在服务器的干净源码目录构建（镜像不含游戏美术）并安装本版本 `ops/` 到 `/opt/stronghold/ops/`：
+服务器开发 checkout 在 `/opt/stronghold/repository`。从已审核的提交构建（镜像不含游戏美术），
+并将该提交的 `ops/` 安装到 `/opt/stronghold/ops/`：
 
 ```sh
+cd /opt/stronghold/repository
 sudo docker build -f ops/Dockerfile --build-arg REVISION="$(git rev-parse HEAD)" -t "stronghold:$(git rev-parse HEAD)" .
 sudo python3 /opt/stronghold/ops/deploy.py staging stronghold:COMMIT_SHA /srv/stronghold/assets/BUNDLE_ID
 ```
@@ -61,3 +67,5 @@ sudo journalctl -u caddy -n 50 --no-pager
 
 公网未登录的 `/`、`/ws`、`/healthz`、资源地址都应返回 401；正确凭据的 `/healthz` 应返回 200。
 测试服密码不能用于正式服。浏览器 Basic Auth 是临时方案，不具备单用户撤销或邮箱验证能力。
+完整外网验收命令：`node ops/smoke_live.mjs /path/to/private/access.json`；JSON 包含 production/staging 的
+url、user、password，必须存放在 Git 之外。检查会创建并删除一个测试服双人大厅，不会启动正式服对局。

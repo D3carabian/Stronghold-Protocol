@@ -16,10 +16,10 @@ exported from a separate Windows computer. iPhone and iPad Safari are target cli
 - [x] Release archive downloaded and SHA-256 verified; 12,564 resource references validated.
 - [x] Code-only Docker build, separate environment config, maintenance gate and candidate activation prepared.
 - [x] Windows export and validated import tools prepared; real Windows run pending availability of that device.
-- [ ] Full CI and golden results completed.
-- [ ] Production/staging launched behind distinct access gates and HTTPS.
-- [ ] WebSocket, resource serving, browser behavior and isolation verified.
-- [ ] Changes committed/pushed; fork CI enabled/checked; status and local handoff saved.
+- [x] Local full CI and golden results completed; final runtime commit also tested on GitHub.
+- [x] Production/staging launched behind distinct access gates and HTTPS.
+- [x] WebSocket, resource serving, Chrome board, Mac Safari lobby and environment isolation verified.
+- [x] Changes committed/pushed; fork CI enabled/checked; status and local handoff saved.
 
 ## Decisions
 
@@ -59,5 +59,8 @@ Do not delete live assets or force-push history. Credentials remain in an owner-
 
 ## Outcomes
 
-Pending final deployment evidence. Real iPhone/iPad Safari and Windows extraction are explicitly unverified until
+Deployment evidence is recorded in STATUS.md: code image b7b9525, locked v0.2.4 assets, two healthy isolated instances,
+protected HTTPS/WS and a tested busy-deployment refusal. Existing blog remains intact. Owner is editing Tailscale policy elsewhere and explicitly requested no changes;
+public SSH fallback was used for final operations. All five upstream CI jobs and fork operations CI passed.
+Real iPhone/iPad Safari and Windows extraction are explicitly unverified until
 tested on those devices. Future mail provider setup is a separate required input for email verification.
